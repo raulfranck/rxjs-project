@@ -1,7 +1,7 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component,  } from '@angular/core';
 import { FormControl } from '@angular/forms';
-import { map, Subscription, switchMap } from 'rxjs';
-import { Item, Livro } from 'src/app/models/interfaces';
+import { map, switchMap, tap } from 'rxjs';
+import { Item } from 'src/app/models/interfaces';
 import { LivroVolumeInfo } from 'src/app/models/livroVolumeInfo';
 import { LivrosService } from 'src/app/services/livros.service';
 
@@ -10,18 +10,10 @@ import { LivrosService } from 'src/app/services/livros.service';
   templateUrl: './lista-livros.component.html',
   styleUrls: ['./lista-livros.component.css']
 })
-export class ListaLivrosComponent implements OnDestroy {
-
-  listaLivros: Livro[];
-  campoBusca = new FormControl() ;
-  subscription: Subscription;
-  livro: Livro;
+export class ListaLivrosComponent {
+  campoBusca = new FormControl();
 
   constructor(private livroService: LivrosService) { }
-
-  ngOnDestroy() {
-    this.subscription.unsubscribe()
-  }
 
   livroResultadoParaLivros(items: Item[]): LivroVolumeInfo[] {
   return items.map(item => {
@@ -31,21 +23,12 @@ export class ListaLivrosComponent implements OnDestroy {
 
   livrosEncontrados$ = this.campoBusca.valueChanges
     .pipe(
+        tap(res => console.log(res)),
         switchMap((valorDigitado) => 
           this.livroService.buscar(valorDigitado)),
-        map((items) => this.listaLivros = this.livroResultadoParaLivros(items))
+        tap(() => console.log('req ao servidor')),
+        map((items) => this.livroResultadoParaLivros(items))
     )
-
- /*  buscarLivros() {
-    this.subscription = this.livroService.buscar(this.campoBusca).subscribe({
-      next: items => {
-        console.log('reuquisicoes ao servidor')
-        this.listaLivros = this.livroResultadoParaLivros(items)
-      },
-      error: error => console.error(error),
-    })
-  } */
-
 }
 
 
