@@ -1,6 +1,6 @@
-import { Component,  } from '@angular/core';
+import { Component, } from '@angular/core';
 import { FormControl } from '@angular/forms';
-import { debounceTime, filter, map, switchMap, tap } from 'rxjs';
+import { debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs';
 import { Item } from 'src/app/models/interfaces';
 import { LivroVolumeInfo } from 'src/app/models/livroVolumeInfo';
 import { LivrosService } from 'src/app/services/livros.service';
@@ -18,18 +18,20 @@ export class ListaLivrosComponent {
   constructor(private livroService: LivrosService) { }
 
   livroResultadoParaLivros(items: Item[]): LivroVolumeInfo[] {
-  return items.map(item => {
-    return new LivroVolumeInfo(item)
-  })
+    return items.map(item => {
+      return new LivroVolumeInfo(item)
+    })
   }
 
   livrosEncontrados$ = this.campoBusca.valueChanges
     .pipe(
-        debounceTime(PAUSA),
-        filter((valorDigitado) => valorDigitado.length >= 3),
-        switchMap((valorDigitado) => 
-          this.livroService.buscar(valorDigitado)),
-        map((items) => this.livroResultadoParaLivros(items))
+      debounceTime(PAUSA),
+      filter((valorDigitado) => valorDigitado.length >= 3),
+      distinctUntilChanged(),
+      switchMap((valorDigitado) =>
+        this.livroService.buscar(valorDigitado)),
+      tap(res => console.log(res)),
+      map((items) => this.livroResultadoParaLivros(items))
     )
 
 }
