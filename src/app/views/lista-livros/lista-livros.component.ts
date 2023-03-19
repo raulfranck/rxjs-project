@@ -1,6 +1,6 @@
 import { Component, } from '@angular/core';
 import { FormControl } from '@angular/forms';
-import { catchError,  debounceTime, distinctUntilChanged, filter, map, switchMap, tap, throwError } from 'rxjs';
+import { catchError,  debounceTime, distinctUntilChanged, EMPTY, filter, map, switchMap, tap, throwError } from 'rxjs';
 import { Item } from 'src/app/models/interfaces';
 import { LivroVolumeInfo } from 'src/app/models/livroVolumeInfo';
 import { LivrosService } from 'src/app/services/livros.service';
@@ -33,8 +33,9 @@ export class ListaLivrosComponent {
         this.livroService.buscar(valorDigitado)),
       tap(res => console.log(res)),
       map((items) => this.livroResultadoParaLivros(items)),
-      catchError(erro => {
-        return throwError(() => new Error(this.mensagemErro = 'Ocorreu um erro'))
+      catchError(() => {
+        this.mensagemErro = 'Ocorreu um erro'
+        return EMPTY
       })
     )
 
