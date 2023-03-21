@@ -1,7 +1,7 @@
 import { Component, } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { catchError,  debounceTime, distinctUntilChanged, EMPTY, filter, map, switchMap, tap, throwError } from 'rxjs';
-import { Item } from 'src/app/models/interfaces';
+import { Item, LivrosResult } from 'src/app/models/interfaces';
 import { LivroVolumeInfo } from 'src/app/models/livroVolumeInfo';
 import { LivrosService } from 'src/app/services/livros.service';
 
@@ -15,6 +15,7 @@ const PAUSA = 300;
 export class ListaLivrosComponent {
   campoBusca = new FormControl();
   mensagemErro: string = ''
+  totalLivros: LivrosResult;
 
   constructor(private livroService: LivrosService) { }
 
@@ -24,6 +25,18 @@ export class ListaLivrosComponent {
     })
   }
 
+  totalLivros$ = this.campoBusca.valueChanges
+  .pipe(
+    debounceTime(PAUSA),
+      filter((valorDigitado) => valorDigitado.length >= 3),
+      distinctUntilChanged(),
+      switchMap((valorDigitado) =>
+        this.livroService.buscar(valorDigitado)),
+      map(res => {
+        this.totalLivros = res
+      }),
+  )
+
   livrosEncontrados$ = this.campoBusca.valueChanges
     .pipe(
       debounceTime(PAUSA),
@@ -32,6 +45,7 @@ export class ListaLivrosComponent {
       switchMap((valorDigitado) =>
         this.livroService.buscar(valorDigitado)),
       tap(res => console.log(res)),
+      map(res => res.items ?? []),
       map((items) => this.livroResultadoParaLivros(items)),
       catchError(() => {
         this.mensagemErro = 'Ocorreu um erro'
